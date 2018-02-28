@@ -1,0 +1,34 @@
+<!DOCTYPE html/>
+<html>
+<head>
+    <title>Kit WebSocket Example</title>
+</head>
+<body>
+<script src="./protocol.js"></script>
+<script src="./kit.js"></script>
+<script type="text/javascript">
+var kit = new KitSession({
+        url:'ws://' + document.domain + ':12345/websocket',
+        log:true
+    });
+kit.on('close', function() {
+    console.log('session closed');
+});
+
+kit.on('chat', function(data) {
+    console.log('chat', data);
+});
+
+kit.request('m.echo',
+    {
+        "msg":"hello server",
+    }, function(data){
+    console.log(data);
+});
+
+setTimeout(function() {
+    kit.disconnect();
+}, 3000);
+</script>
+</body>
+</html>
