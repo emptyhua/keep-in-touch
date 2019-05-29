@@ -1,7 +1,6 @@
 package kit
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,53 +14,45 @@ type Server struct {
 	Route             *Route
 }
 
-func (s *Server) setup() {
-	if s.Route == nil {
-		panic(errors.New("Serve.Route missed"))
+func NewServer(route *Route) *Server {
+	server := &Server{
+		SessionManager:    NewSessionManager(),
+		Route:             route,
+		HeartbeatInterval: 5 * time.Second,
 	}
 
-	if s.SessionManager == nil {
-		s.SessionManager = NewSessionManager()
-		go s.SessionManager.CheckExpire()
-	}
-
-	if s.HeartbeatInterval == 0 {
-		s.HeartbeatInterval = 5 * time.Second
-	}
+	go server.SessionManager.CheckExpire()
+	return server
 }
 
-func (s *Server) HandleWebSocket(mux *http.ServeMux, path string) {
-	s.setup()
-
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin:     func(_ *http.Request) bool { return true },
 	}
 
-	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			Logger.Errorf("websocket upgrade failure, URI=%s, Error=%v", r.RequestURI, err)
-			return
-		}
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		Logger.Errorf("websocket upgrade failure, URI=%s, Error=%v", r.RequestURI, err)
+		return
+	}
 
-		c, err := newWSConn(conn)
-		if err != nil {
-			Logger.Errorf("newWSConn error %v", err)
-			return
-		}
+	c, err := newWSConn(conn)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		Logger.Errorf("newWSConn error %v", err)
+		return
+	}
 
-		kitConn := NewKitConn(s, c)
-		kitConn.Handle()
-	})
+	kitConn := NewKitConn(s, c)
+	kitConn.Handle()
 }
 
 func (s *Server) RunWebSocketServer(path string, port int) {
-	s.setup()
-
 	mux := http.NewServeMux()
-	s.HandleWebSocket(mux, path)
+	mux.HandleFunc(path, s.ServeHTTP)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

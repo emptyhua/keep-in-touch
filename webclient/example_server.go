@@ -31,12 +31,12 @@ func main() {
 
 	route.Reg("m", &MyApp{})
 
-	kitServer := &kit.Server{Route: route}
+	kitServer := kit.NewServer(route)
 
 	mux := http.NewServeMux()
 
 	mux.Handle("/", http.FileServer(http.Dir("./")))
-	kitServer.HandleWebSocket(mux, "/websocket")
+	mux.Handle("/websocket", kitServer)
 
 	port := "12345"
 	httpServer := &http.Server{

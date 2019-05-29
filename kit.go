@@ -1,7 +1,7 @@
 package kit
 
 import (
-	"github.com/ccding/go-logging/logging"
+	"github.com/emptyhua/go-logging/logging"
 )
 
 var debug = true

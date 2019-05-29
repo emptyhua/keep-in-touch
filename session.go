@@ -13,7 +13,7 @@ const (
 	SessionStatusClosed
 )
 
-const SessionMaxDelayMsgCount = 100 // 必须比 KitConnWriteQueueSize 小
+var SessionMaxDelayMsgCount = 100 // 必须比 KitConnWriteQueueSize 小
 
 type SessionCloseEventListener interface {
 	OnSessionClose(s *Session)
