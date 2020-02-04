@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 const (
@@ -33,7 +33,7 @@ type Session struct {
 func newSession(m *SessionManager) *Session {
 	return &Session{
 		Manager: m,
-		Id:      uuid.Must(uuid.NewV4()).String(),
+		Id:      uuid.New().String(),
 		status:  SessionStatusNormal,
 		data:    make(map[string]interface{}),
 	}
