@@ -21,6 +21,7 @@ func SetDebug(d bool) {
 
 func init() {
 	atomicLevel = zap.NewAtomicLevel()
+	atomicLevel.SetLevel(zap.ErrorLevel)
 
 	// To keep the example deterministic, disable timestamps in the output.
 	encoderCfg := zap.NewProductionEncoderConfig()
